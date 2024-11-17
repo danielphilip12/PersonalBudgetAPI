@@ -63,6 +63,34 @@ app.delete("/envelope/:id", (req, res) => {
     return res.status(204).json({"message": "envelope deleted"})
 })
 
+app.post("/envelopes/transfer/:fromId/:toId", (req, res) => {
+    const {fromId, toId} = req.params;
+    const { amount } = req.body;
+
+    const fromEnvelopeIndex = envelopes.findIndex(envelope => envelope.id == fromId);
+    if(fromEnvelopeIndex === -1) {
+        return res.status(404).json({"message": "from envelope not found"})
+    }
+
+    const toEnvelopeIndex = envelopes.findIndex(envelope => envelope.id == toId);
+    if(toEnvelopeIndex === -1) {
+        return res.status(404).json({"message": "to envelope not found"})
+    }
+
+    const fromEnvelope = envelopes[fromEnvelopeIndex];
+    const toEnvelope = envelopes[toEnvelopeIndex];
+
+    if (amount > fromEnvelope.currentBalance) {
+        return res.status(403).json({"message": `attempting to transfer more than available. Current available balance: ${fromEnvelope.currentBalance}`})
+    }
+
+    fromEnvelope.currentBalance -= amount;
+    toEnvelope.currentBalance += amount;
+
+    return res.status(202).json({"message": "transfer complete"})
+
+})
+
 app.listen(3000, () => {
     console.log("listening on port 3000");
     
