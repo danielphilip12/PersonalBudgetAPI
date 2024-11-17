@@ -36,6 +36,10 @@ app.post("/envelope/:id/extract", (req, res) => {
     const { amountToExtract } = req.body;
 
     const envelopeIndex = envelopes.findIndex(envelope => envelope.id == id);
+    if(envelopeIndex === -1) {
+        return res.status(404).json({"message": "envelope not found"})
+    }
+    
     const envelope = envelopes[envelopeIndex]
 
     if (amountToExtract > envelope.currentBalance) {
@@ -44,6 +48,19 @@ app.post("/envelope/:id/extract", (req, res) => {
 
     envelope.currentBalance -= amountToExtract;
     return res.status(202).json({message: `Extracted ${amountToExtract} from budget ${envelope.name}. Remaining Balance ${envelope.currentBalance}`})
+})
+
+app.delete("/envelope/:id", (req, res) => {
+    const { id } = req.params;
+
+    const envelopeIndex = envelopes.findIndex(envelope => envelope.id == id);
+    if(envelopeIndex === -1) {
+        return res.status(404).json({"message": "envelope not found"})
+    }
+
+    envelopes.splice(envelopeIndex, 1);
+
+    return res.status(204).json({"message": "envelope deleted"})
 })
 
 app.listen(3000, () => {
